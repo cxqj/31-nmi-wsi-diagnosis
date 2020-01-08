@@ -3,13 +3,13 @@
 import os, sys
 import numpy as np
 import argparse
-import openslide   # 全扫描（whole slide image）图像非常的大，处理起来比较麻烦，openslide提供了接口
-import cv2 
-import uuid, json  # uuid是128位的全局唯一标识符
+import openslide
+import cv2
+import uuid, json
 from skimage import transform, io
 import matplotlib.pyplot as plt
 from pycontour import poly_transform
-from shapely.geometry import Point   # shapely是一个python包，用于设置平面特征的理论分析和操作（通过python的 ctypes 模块）来自著名和广泛部署的地理类库的功能。
+from shapely.geometry import Point
 import matplotlib.pyplot as plt
 from load_anno import load_annotation
 
@@ -61,7 +61,7 @@ def gen_patch_mask(args):
     return patch_mask
 
 
-
+# annotation_dict : 坐标字典
 def gen_patches(slide_path, annotation_dict, args):
     """ Generate patch images and masks based on annotations as well as slide information.
 
@@ -143,14 +143,14 @@ def set_args():
 if __name__ == "__main__":
     args = set_args()
 
-    # locate annotation path slide图片的标注路径
+    # locate annotation path
     anno_path = os.path.join(args.bladder_dir, "Slide", "RegionAnnotation",
                              args.anno_type, args.slide_id, "annotations.json")
     if not os.path.exists(anno_path):
         print("No {} annotation for slide {}".format(args.anno_type, args.slide_id))
         sys.exit()
     # load annotation
-    annotation_dict = load_annotation(anno_path)
+    annotation_dict = load_annotation(anno_path)  # {'region_name' : coords}
 
     # find slide path (slide filename extension can be .svs or .tiff)
     slide_dir = os.path.join(args.bladder_dir, "Slide", "Img")
