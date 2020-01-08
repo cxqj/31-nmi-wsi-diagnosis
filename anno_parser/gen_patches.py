@@ -137,7 +137,8 @@ def gen_patches(slide_path, annotation_dict, args):
                         patch_mask[ph-rand_h, pw-rand_w] = 0
 
                 
-            save_img = transform.resize(cur_patch, (args.save_size, args.save_size))  # (256,256)
+            save_img = transform.resize(cur_patch, (args.save_size, args.save_size))  # (256,256,3)
+            # 经过resize后变为了0或1的矩阵  (256,256)
             save_mask = transform.resize(patch_mask, (args.save_size, args.save_size), order=0) # order=0: Nearest-neighbor interpolation
             
             save_mask = (save_mask * 255).astype(np.uint8)
