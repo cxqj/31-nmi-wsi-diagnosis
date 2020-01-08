@@ -433,7 +433,7 @@ def list_pictures(directory, ext='jpg|jpeg|bmp|png'):
       if re.match(r'([\w]+\.(?:' + ext + '))', f)
   ]
 
-
+# 图片数据生成器
 class ImageDataGenerator(object):
   """Generate minibatches of image data with real-time data augmentation.
 
@@ -497,7 +497,7 @@ class ImageDataGenerator(object):
                preprocessing_function=None,
                data_format=None):
     if data_format is None:
-      data_format = image_data_format()
+      data_format = image_data_format()  # channels_last
     self.featurewise_center = featurewise_center
     self.samplewise_center = samplewise_center
     self.featurewise_std_normalization = featurewise_std_normalization
