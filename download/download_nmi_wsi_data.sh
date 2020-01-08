@@ -19,7 +19,7 @@ mkdir Slide
 cd Slide
 echo "Downloading Slide now..."
 wget https://www.dropbox.com/s/wmwwayn5s2zve77/class_slide.json
-wget https://www.dropbox.com/s/vfvy21drom261jl/Thumbnails.zip
+wget https://www.dropbox.com/s/vfvy21drom261jl/Thumbnails(缩略图).zip
 wget https://www.dropbox.com/s/1kpu6xv27s5ksvv/RegionAnnotation.zip
 wget https://www.dropbox.com/s/legnlzicbgyosnr/human_results.zip
 wget https://www.dropbox.com/s/ri02tutxecqk85t/selected_diagnosis_for_comparsion_100_partial.json
