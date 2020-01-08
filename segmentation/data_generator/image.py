@@ -393,7 +393,7 @@ def img_to_array(img, data_format=None):
     raise ValueError('Unsupported image shape: ', x.shape)
   return x
 
-
+#-----------------------------------------------------------加载图片------------------------------------------------#
 def load_img(path, grayscale=False, target_size=None):
   """Loads an image into PIL format.
 
@@ -433,7 +433,7 @@ def list_pictures(directory, ext='jpg|jpeg|bmp|png'):
       if re.match(r'([\w]+\.(?:' + ext + '))', f)
   ]
 
-# 图片数据生成器
+#-------------------------------------图片数据生成器-------------------------------------------#
 class ImageDataGenerator(object):
   """Generate minibatches of image data with real-time data augmentation.
 
@@ -566,12 +566,13 @@ class ImageDataGenerator(object):
         save_prefix=save_prefix,
         save_format=save_format)
 
+  #--------------------------------------从文件夹中读取数据----------------------------#
   def flow_from_directory(self,
                           directory,
                           target_size=(256, 256),
-                          color_mode='rgb',
+                          color_mode='rgb',  # rgb / grayscale
                           classes=None,
-                          class_mode='categorical',
+                          class_mode='categorical',  # sparse
                           batch_size=32,
                           shuffle=True,
                           seed=None,
@@ -810,7 +811,10 @@ class ImageDataGenerator(object):
       u, s, _ = linalg.svd(sigma)
       self.principal_components = np.dot(
           np.dot(u, np.diag(1. / np.sqrt(s + self.zca_epsilon))), u.T)
-
+'''
+图片数据迭代器，
+NumpyArrayIterator和DirectoryIterator均继承自这个类
+'''
 
 class Iterator(object):
   """Abstract base class for image data iterators.
@@ -829,11 +833,12 @@ class Iterator(object):
     self.batch_index = 0
     self.total_batches_seen = 0
     self.lock = threading.Lock()
-    self.index_generator = self._flow_index(n, batch_size, shuffle, seed)
+    self.index_generator = self._flow_index(n, batch_size, shuffle, seed)   # n = 630 batch_size = 2 shffle = True seed = 1234
 
   def reset(self):
     self.batch_index = 0
 
+  # ---------------------------获取batch数据对应的索引------------------------#
   def _flow_index(self, n, batch_size=32, shuffle=False, seed=None):
     # Ensure self.batch_index is 0.
     self.reset()
@@ -841,7 +846,7 @@ class Iterator(object):
       if seed is not None:
         np.random.seed(seed + self.total_batches_seen)
       if self.batch_index == 0:
-        index_array = np.arange(n)
+        index_array = np.arange(n)    # [0,1,2,...........,630]
         if shuffle:
           index_array = np.random.permutation(n)
 
@@ -868,7 +873,7 @@ class Iterator(object):
   def __next__(self, *args, **kwargs):
     return self.next(*args, **kwargs)
 
-
+#---------------------------------------Iterator yielding data from a Numpy array.------------------------------------------------#
 class NumpyArrayIterator(Iterator):
   """Iterator yielding data from a Numpy array.
 
@@ -1003,7 +1008,7 @@ def _count_valid_files_in_directory(directory, white_list_formats,
         samples += 1
   return samples
 
-
+# 获取每个子文件夹中图片的类别索引和文件名
 def _list_valid_filenames_in_directory(directory, white_list_formats,
                                        class_indices, follow_links):
   """List paths of files in `subdir` with extensions in `white_list_formats`.
@@ -1023,16 +1028,18 @@ def _list_valid_filenames_in_directory(directory, white_list_formats,
           `directory`'s parent (e.g., if `directory` is "dataset/class1",
           the filenames will be ["class1/file1.jpg", "class1/file2.jpg", ...]).
   """
-
+  
+  # os.walk() 方法用于通过在目录树中游走输出在目录中的文件名，向上或者向下。
+  # followlinks -- 可选，如果为 True，则会遍历目录下的快捷方式
   def _recursive_list(subpath):
     return sorted(
-        os.walk(subpath, followlinks=follow_links), key=lambda tpl: tpl[0])
+        os.walk(subpath, followlinks=follow_links), key=lambda tpl: tpl[0])  
 
   classes = []
   filenames = []
   subdir = os.path.basename(directory)
   basedir = os.path.dirname(directory)
-  for root, _, files in _recursive_list(directory):
+  for root, _, files in _recursive_list(directory):   # files : {'2' : 426 ，'3' : 204}
     # for fname in files:
     for fname in sorted(files): # zzz
       is_valid = False
@@ -1047,7 +1054,7 @@ def _list_valid_filenames_in_directory(directory, white_list_formats,
         filenames.append(os.path.relpath(absolute_path, basedir))
   return classes, filenames
 
-
+#--------------------------------------加载文件夹中的数据------------------------------------#
 class DirectoryIterator(Iterator):
   """Iterator capable of reading images from a directory on disk.
 
@@ -1091,7 +1098,7 @@ class DirectoryIterator(Iterator):
                target_size=(256, 256),
                color_mode='rgb',
                classes=None,
-               class_mode='categorical',
+               class_mode='categorical',  # sparse
                batch_size=32,
                shuffle=True,
                seed=None,
@@ -1104,12 +1111,15 @@ class DirectoryIterator(Iterator):
       data_format = image_data_format()
     self.directory = directory
     self.image_data_generator = image_data_generator
-    self.target_size = tuple(target_size)
+    self.target_size = tuple(target_size)  # (256,256)
+    
     if color_mode not in {'rgb', 'grayscale'}:
       raise ValueError('Invalid color mode:', color_mode,
                        '; expected "rgb" or "grayscale".')
-    self.color_mode = color_mode
-    self.data_format = data_format
+      
+    self.color_mode = color_mode  # rgb/grayscale
+    self.data_format = data_format  # channels_last
+    
     if self.color_mode == 'rgb':
       if self.data_format == 'channels_last':
         self.image_shape = self.target_size + (3,)
@@ -1120,20 +1130,24 @@ class DirectoryIterator(Iterator):
         self.image_shape = self.target_size + (1,)
       else:
         self.image_shape = (1,) + self.target_size
+        
+        
     self.classes = classes
+    
     if class_mode not in {'categorical', 'binary', 'sparse', 'input', None}:
       raise ValueError('Invalid class_mode:', class_mode,
                        '; expected one of "categorical", '
                        '"binary", "sparse", "input"'
                        ' or None.')
+      
     self.class_mode = class_mode
     self.save_to_dir = save_to_dir
     self.save_prefix = save_prefix
-    self.save_format = save_format
+    self.save_format = save_format  # png
 
-    white_list_formats = {'png', 'jpg', 'jpeg', 'bmp'}
+    white_list_formats = {'png', 'jpg', 'jpeg', 'bmp'}   # 图片后缀
 
-    # first, count the number of samples and classes
+    #------------------------------First, count the number of samples and classes------------------------------#
     self.samples = 0
 
     if not classes:
@@ -1141,8 +1155,8 @@ class DirectoryIterator(Iterator):
       for subdir in sorted(os.listdir(directory)):
         if os.path.isdir(os.path.join(directory, subdir)):
           classes.append(subdir)
-    self.num_class = len(classes)
-    self.class_indices = dict(zip(classes, range(len(classes))))
+    self.num_class = len(classes)  # 2
+    self.class_indices = dict(zip(classes, range(len(classes))))  # {'2' : 0, '3' : 1}
 
     pool = multiprocessing.pool.ThreadPool()
     function_partial = partial(
@@ -1156,13 +1170,27 @@ class DirectoryIterator(Iterator):
     print('Found %d images belonging to %d classes.' % (self.samples,
                                                         self.num_class))
 
-    # second, build an index of the images in the different class subfolders
+    #----------------------Second, build an index of the images in the different class subfolders--------------------------#
     results = []
 
     self.filenames = []
-    self.classes = np.zeros((self.samples,), dtype='int32')
+    self.classes = np.zeros((self.samples,), dtype='int32')  # (630,)
     i = 0
     for dirpath in (os.path.join(directory, subdir) for subdir in classes):
+      # -------------------统计文件夹下有效的文件数-------------#
+      '''
+      params : 
+          dirpath : path to files
+          white_list_format : {'png', 'jpg', 'jpeg', 'bmp'}
+          self.class_indices : {'2' : 0, '3' : 1}
+          follow_links : False
+          
+      outputs : 
+          classes : 每个子文件夹下每张图片的类别索引列表
+          filenames : ['2/图片名']/ ['3/图片名']
+          
+      
+      '''
       results.append(
           pool.apply_async(_list_valid_filenames_in_directory, (
               dirpath, white_list_formats, self.class_indices, follow_links)))
@@ -1183,24 +1211,31 @@ class DirectoryIterator(Iterator):
         The next batch.
     """
     with self.lock:
+      # index_array : [424,452] 一个batch_size数据对应的索引列表
+      # current_index : 0
+      # currrnt_batch_size : 2
       index_array, current_index, current_batch_size = next(
-          self.index_generator)
+          self.index_generator)   # self.index_generator = iterator._flow_index()
     # The transformation of images is not under thread lock
     # so it can be done in parallel
     batch_x = np.zeros(
-        (current_batch_size,) + self.image_shape, dtype=floatx())
+        (current_batch_size,) + self.image_shape, dtype=floatx())  # (B,256,256,1)
     grayscale = self.color_mode == 'grayscale'
+    
     # build batch of image data
     for i, j in enumerate(index_array):
       fname = self.filenames[j]
       img = load_img(
           os.path.join(self.directory, fname),
           grayscale=grayscale,
-          target_size=self.target_size)
-      x = img_to_array(img, data_format=self.data_format)
+          target_size=self.target_size)   # (256,256)
+      x = img_to_array(img, data_format=self.data_format)  # (256,256,3)
+      # 数据增强
       x = self.image_data_generator.random_transform(x)
       x = self.image_data_generator.standardize(x)
       batch_x[i] = x
+      
+      
     # optionally save augmented images to disk for debugging purposes
     if self.save_to_dir:
       for i in range(current_batch_size):
@@ -1211,11 +1246,14 @@ class DirectoryIterator(Iterator):
             hash=np.random.randint(1e4),
             format=self.save_format)
         img.save(os.path.join(self.save_to_dir, fname))
+        
+        
+        
     # build batch of labels
     if self.class_mode == 'input':
       batch_y = batch_x.copy()
-    elif self.class_mode == 'sparse':
-      batch_y = self.classes[index_array]
+    elif self.class_mode == 'sparse':  # sparse
+      batch_y = self.classes[index_array]   # batch_y 保存图片对应的类别索引
     elif self.class_mode == 'binary':
       batch_y = self.classes[index_array].astype(floatx())
     elif self.class_mode == 'categorical':
@@ -1224,4 +1262,6 @@ class DirectoryIterator(Iterator):
         batch_y[i, label] = 1.
     else:
       return batch_x
+    # batch_x : (2,256,256,3)
+    # batch_y : []
     return batch_x, batch_y
