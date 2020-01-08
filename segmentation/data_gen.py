@@ -36,11 +36,13 @@ def data_loader(path, batch_size, imSize,
     # 0,1,2 are low, high, normal
 
     def imerge(img_gen, mask_gen):
+        # imgs : (2,256,256,3)  img_labels : [0,1] / imgs : (4,256,256,3) img_labels : [0 1 0 1]     
+        # mask : (2,256,256,1)  mask_labels : [0,1] / mask : (4,256,256,1) mask_labels : [0 1 0 1]
         for (imgs, img_labels), (mask, mask_labels) in itertools.zip_longest(img_gen, mask_gen):
             # compute weight to ignore particular pixels
             # mask = np.expand_dims(mask[:,:,:,0], axis=3)
-            mask = mask[:,:,:,0]
-            weight = np.ones(mask.shape, np.float32)
+            mask = mask[:,:,:,0]  # (2,256,256)
+            weight = np.ones(mask.shape, np.float32) # (2,256,256)
             weight[mask==ignore_val] = 0.5 # this is set by experience
 
             # In mask, ignored pixel has value ignore_val.
@@ -77,7 +79,7 @@ def data_loader(path, batch_size, imSize,
     seed = 1234
     train_image_datagen = ImageDataGenerator(**train_data_gen_args).flow_from_directory(
                                 path+'train/img',
-                                class_mode="sparse",
+                                class_mode="sparse",   # sparse : 稀疏
                                 target_size=(imSize, imSize),
                                 batch_size=batch_size,
                                 seed=seed)
@@ -105,5 +107,5 @@ def data_loader(path, batch_size, imSize,
 
     train_generator = imerge(train_image_datagen, train_mask_datagen)
     test_generator = imerge(test_image_datagen, test_mask_datagen)
-    sys.stdout.flush()
+    sys.stdout.flush()  # 在Linux系统下，必须加入sys.stdout.flush()才能一秒输一个数字
     return train_generator,  test_generator, train_image_datagen.samples, test_image_datagen.samples
