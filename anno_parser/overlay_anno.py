@@ -8,7 +8,7 @@ import cv2
 import matplotlib.pyplot as plt
 from load_anno import load_annotation
 
-
+# slide_level = 3
 def display_annotation(slide_path, annotation_dict, slide_level):
     """ Draw the annotation contour onto the slide image on a specific level.
 
@@ -22,13 +22,15 @@ def display_annotation(slide_path, annotation_dict, slide_level):
 
     # load slide image
     slide_img = slide_head.read_region((0, 0), slide_level, slide_head.level_dimensions[slide_level])
-    slide_img = np.asarray(slide_img)[:, :, :3]
+    slide_img = np.asarray(slide_img)[:, :, :3]  # (2970,2766,3)
     slide_img =  np.ascontiguousarray(slide_img, dtype=np.uint8)
 
     # draw annotation on the slide image
+    # 当slide_level = 3 时按32.005的比例进行采样
     for cur_reg in annotation_dict:
-        coords = (annotation_dict[cur_reg] / slide_head.level_downsamples[slide_level]).astype(np.int32)
-        cv_coords = np.expand_dims(coords, axis=1)
+        coords = (annotation_dict[cur_reg] / slide_head.level_downsamples[slide_level]).astype(np.int32)  # (428,2)
+        cv_coords = np.expand_dims(coords, axis=1)  # (418,1,2)
+        # cv2.drawContours填充轮廓颜色
         slide_img = cv2.drawContours(slide_img, [cv_coords], 0, (0, 0, 255), 5)
 
     # display overlaid annotation slide image
