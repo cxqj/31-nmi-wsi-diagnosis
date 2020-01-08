@@ -26,6 +26,8 @@ def get_coords(region):
     # just keep valid points
     coords = coords[:c,:]
 
+    # name ： 区域名
+    # coors : (num,2)
     return name, coords
 
 
@@ -43,8 +45,8 @@ def load_annotation(annotation_path):
     regions_list = annotation_data['Regions']
 
     region_dict = {}
-    for cur_reg in regions_list:
+    for cur_reg in regions_list:   # cur_reg : dict
         name, coords = get_coords(cur_reg)
         region_dict[name] = coords
 
-    return region_dict
+    return region_dict  # {'region_name' : coords}
