@@ -35,7 +35,7 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 ''' Users defined data loader (with train and test) '''
-img_shape = [opt.imSize, opt.imSize]
+img_shape = [opt.imSize, opt.imSize]  # [256,256]
 train_generator, test_generator, train_samples, test_samples = data_loader(opt.data_path, opt.batch_size, imSize=opt.imSize, mean=dataset_mean, std=dataset_std)
 
 iter_epoch = int(train_samples / opt.batch_size * opt.iter_epoch_ratio)
