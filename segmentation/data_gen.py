@@ -68,7 +68,7 @@ def data_loader(path, batch_size, imSize,
             # img, mask = preprocess(imgs, mean, std, mask)
 
             yield imgs, mask, weight, img_labels
-
+    # 训练数据配置参数
     train_data_gen_args = dict(
                     horizontal_flip=True,
                     zoom_range=0.2,
