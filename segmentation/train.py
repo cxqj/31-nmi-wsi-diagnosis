@@ -42,32 +42,33 @@ iter_epoch = int(train_samples / opt.batch_size * opt.iter_epoch_ratio)
 test_iter = int(test_samples / opt.batch_size)
 
 # define input holders
-label = tf.placeholder(tf.int32, shape=[None]+img_shape)
-label_weights = tf.placeholder(tf.float32, shape=[None]+img_shape)
+label = tf.placeholder(tf.int32, shape=[None]+img_shape)  # (?,256,256)
+label_weights = tf.placeholder(tf.float32, shape=[None]+img_shape) # (?,256,256)
 is_training = tf.placeholder(tf.bool, name='training_mode_placeholder')
 
 # define model
 with tf.name_scope('unet'):
-    img = tf.placeholder(tf.float32, shape=(None, opt.imSize, opt.imSize, 3))
+    img = tf.placeholder(tf.float32, shape=(None, opt.imSize, opt.imSize, 3))  # (B,256,256,3)
+    # img_shape = [256,256,3] num_class = 2 
     model = UNet().create_model(img_shape=img_shape+[3], num_class=opt.num_class, rate=opt.drop_rate, input_tensor=preprocess_input(img))
-    pred = model.output
-    logit = tf.nn.softmax(pred) # used in test
+    pred = model.output  # (B,256,256,2)
+    logit = tf.nn.softmax(pred) # used in test  (B,256,256,2)
     # logit = tf.cast(tf.argmax(pred, axis=3), np.float32)
 # define loss
 with tf.name_scope('cross_entropy'):
     cross_entropy_loss_pixel = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label, logits=pred)
     cross_entropy_loss_pixel = tf.multiply(cross_entropy_loss_pixel, label_weights)
     cross_entropy_loss = tf.reduce_sum(cross_entropy_loss_pixel) / (tf.reduce_sum(label_weights) + 0.00001)
-    if opt.weight_decay > 0:
+    if opt.weight_decay > 0:  # weight_decay = 0
         cross_entropy_loss = cross_entropy_loss + opt.weight_decay * tf.add_n(
                                                 [tf.nn.l2_loss(v) for v in tf.trainable_variables()
                                                 if 'batch_normalization' not in v.name])
 # define optimizer
-global_step = tf.Variable(0, name='global_step', trainable=False)
+global_step = tf.Variable(0, name='global_step', trainable=False)  # 0
 with tf.name_scope('learning_rate'):
     learning_rate = tf.train.exponential_decay(opt.learning_rate, global_step,
                                            iter_epoch*opt.lr_decay_epoch, opt.lr_decay, staircase=True)
-    if opt.optim == 'adam':
+    if opt.optim == 'adam':  # adam
         train_step = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cross_entropy_loss, global_step=global_step)
     elif opt.optim == 'sgd':
         train_step = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9, use_nesterov=True).minimize(cross_entropy_loss, global_step=global_step)
@@ -84,27 +85,27 @@ with tf.name_scope('summary'):
     summary_merged = tf.summary.merge_all()
 
 # define saver
-if not opt.eval:
+if not opt.eval:  # train
     train_writer = tf.summary.FileWriter(opt.checkpoint_path+'/train', sess.graph)
     test_writer = tf.summary.FileWriter(opt.checkpoint_path+'/test', sess.graph)
     saver = tf.train.Saver(max_to_keep=20) # must be added in the end
-else:
+else:  # test
     saver = tf.train.Saver(var_list=tf.trainable_variables()+[a for a in tf.global_variables() if 'step' in a.name], max_to_keep=20)
 
 ''' Main '''
-tot_iter = iter_epoch * opt.epoch
+tot_iter = iter_epoch * opt.epoch  # 15750
 init_op = tf.global_variables_initializer()
 sess.run(init_op)
 with sess.as_default():
     # restore from a checkpoint if exists
     # the name_scope can not change
-    if opt.eval:
+    if opt.eval:  # test
         try:
             model.load_weights(opt.load_from_checkpoint, by_name=True)
             print ('=> load from checkpoint '+opt.load_from_checkpoint)
         except Exception as e:
             raise ValueError('=> unable to load checkpoint ...' + str(e))
-    start = global_step.eval()
+    start = global_step.eval()  # 0
     epoch_iter = 0
     for it in range(start, tot_iter):
         if it % iter_epoch == 0 and it != start or opt.eval:
@@ -153,7 +154,7 @@ with sess.as_default():
             if opt.eval: break
 
         start = time.time()
-        x_batch, y_batch, weight_batch, _  = next(train_generator)
+        x_batch, y_batch, weight_batch, _  = next(train_generator)  # 为什么这里调用了data_gen中的imerge??
         feed_dict = {
                         img: x_batch,
                         label: y_batch,
