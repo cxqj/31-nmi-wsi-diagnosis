@@ -1265,3 +1265,4 @@ class DirectoryIterator(Iterator):
     # batch_x : (2,256,256,3)
     # batch_y : []
     return batch_x, batch_y
+  
