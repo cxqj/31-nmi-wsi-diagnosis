@@ -38,6 +38,7 @@ def data_loader(path, batch_size, imSize,
     def imerge(img_gen, mask_gen):
         # imgs : (2,256,256,3)  img_labels : [0,1] / imgs : (4,256,256,3) img_labels : [0 1 0 1]     
         # mask : (2,256,256,1)  mask_labels : [0,1] / mask : (4,256,256,1) mask_labels : [0 1 0 1]
+        # itertools.zip_longest： 使用最长的迭代器来作为返回值的长度，并且可以使用fillvalue来制定那些缺失值的默。
         for (imgs, img_labels), (mask, mask_labels) in itertools.zip_longest(img_gen, mask_gen):
             # compute weight to ignore particular pixels
             # mask = np.expand_dims(mask[:,:,:,0], axis=3)
@@ -77,6 +78,9 @@ def data_loader(path, batch_size, imSize,
                     fill_mode='reflect')
 
     seed = 1234
+    # 1.初始化 ImageDataGenerator
+    # 2.调用flow_from_directory,返回Directory()对象
+    # 3.在调用next()函数时才进入Directory类中进行迭代
     train_image_datagen = ImageDataGenerator(**train_data_gen_args).flow_from_directory(
                                 path+'train/img',
                                 class_mode="sparse",   # sparse : 稀疏
