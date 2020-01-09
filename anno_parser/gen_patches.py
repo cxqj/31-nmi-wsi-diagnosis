@@ -190,3 +190,5 @@ if __name__ == "__main__":
 
     # overlay the annotation on the slide and display
     gen_patches(slide_path, annotation_dict, args)
+    
+    
