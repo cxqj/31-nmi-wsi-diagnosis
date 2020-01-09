@@ -36,14 +36,16 @@ sess = tf.Session(config=config)
 
 ''' Users defined data loader (with train and test) '''
 img_shape = [opt.imSize, opt.imSize]  # [256,256]
+
+#-----------------------------生成数据加载器----------------------------------#
 train_generator, test_generator, train_samples, test_samples = data_loader(opt.data_path, opt.batch_size, imSize=opt.imSize, mean=dataset_mean, std=dataset_std)
 
 iter_epoch = int(train_samples / opt.batch_size * opt.iter_epoch_ratio)
 test_iter = int(test_samples / opt.batch_size)
 
 # define input holders
-label = tf.placeholder(tf.int32, shape=[None]+img_shape)  # (?,256,256)
-label_weights = tf.placeholder(tf.float32, shape=[None]+img_shape) # (?,256,256)
+label = tf.placeholder(tf.int32, shape=[None]+img_shape)  # (B,256,256)
+label_weights = tf.placeholder(tf.float32, shape=[None]+img_shape) # (B,256,256)
 is_training = tf.placeholder(tf.bool, name='training_mode_placeholder')
 
 # define model
@@ -54,6 +56,8 @@ with tf.name_scope('unet'):
     pred = model.output  # (B,256,256,2)
     logit = tf.nn.softmax(pred) # used in test  (B,256,256,2)
     # logit = tf.cast(tf.argmax(pred, axis=3), np.float32)
+    
+    
 # define loss
 with tf.name_scope('cross_entropy'):
     cross_entropy_loss_pixel = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label, logits=pred)
@@ -63,6 +67,7 @@ with tf.name_scope('cross_entropy'):
         cross_entropy_loss = cross_entropy_loss + opt.weight_decay * tf.add_n(
                                                 [tf.nn.l2_loss(v) for v in tf.trainable_variables()
                                                 if 'batch_normalization' not in v.name])
+        
 # define optimizer
 global_step = tf.Variable(0, name='global_step', trainable=False)  # 0
 with tf.name_scope('learning_rate'):
@@ -108,6 +113,7 @@ with sess.as_default():
     start = global_step.eval()  # 0
     epoch_iter = 0
     for it in range(start, tot_iter):
+        # 每个epoch结束后进行测试
         if it % iter_epoch == 0 and it != start or opt.eval:
             test_epoch = it//iter_epoch
             # save checkpoint
@@ -154,7 +160,11 @@ with sess.as_default():
             if opt.eval: break
 
         start = time.time()
-        x_batch, y_batch, weight_batch, _  = next(train_generator)  # 为什么这里调用了data_gen中的imerge??
+        
+        # 1.进入data_gen的imerge函数
+        # 2.调用image中Iterator类的iter函数
+        # 3.
+        x_batch, y_batch, weight_batch, _  = next(train_generator)  
         feed_dict = {
                         img: x_batch,
                         label: y_batch,
