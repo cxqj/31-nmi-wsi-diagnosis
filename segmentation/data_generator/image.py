@@ -530,7 +530,7 @@ class ImageDataGenerator(object):
     if data_format == 'channels_last':
       self.channel_axis = 3
       self.row_axis = 1
-      self.col_axis = 2
+      self.col_axis = 2   # (B,row,col,channels)
 
     self.mean = None
     self.std = None
