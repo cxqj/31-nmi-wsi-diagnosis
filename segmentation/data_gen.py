@@ -36,8 +36,8 @@ def data_loader(path, batch_size, imSize,
     # 0,1,2 are low, high, normal
 
     def imerge(img_gen, mask_gen):
-        # imgs : (2,256,256,3)  img_labels : [0,1] / imgs : (4,256,256,3) img_labels : [0 1 0 1]     
-        # mask : (2,256,256,1)  mask_labels : [0,1] / mask : (4,256,256,1) mask_labels : [0 1 0 1]
+        # imgs : (2,256,256,3)  img_labels : [0,0]   
+        # mask : (2,256,256,1)  mask_labels : [0,0]
         # itertools.zip_longest： 使用最长的迭代器来作为返回值的长度，并且可以使用fillvalue来制定那些缺失值的默。
         for (imgs, img_labels), (mask, mask_labels) in itertools.zip_longest(img_gen, mask_gen):
             # compute weight to ignore particular pixels
@@ -50,9 +50,14 @@ def data_loader(path, batch_size, imSize,
             # The weight of these pixel is set to zero, so they do not contribute to loss
             # The returned mask is still binary.
             # compute per sample
+            
+            
+            # pos_val : 255
+            # neg_val : 155
+            # ignore_val : 44
             for c, mask_label in enumerate(mask_labels):
                 assert(mask_labels[c] == img_labels[c])
-                mask_pointer = mask[c]
+                mask_pointer = mask[c]   # mask像素点
                 if mask_label in pos_class:
                     assert(np.where(mask_pointer == neg_val)[0].size == 0)
                     mask_pointer[mask_pointer==pos_val] = 1
@@ -65,6 +70,8 @@ def data_loader(path, batch_size, imSize,
 
                 mask_pointer[mask_pointer==ignore_val] = 0
 
+            # issubset() 方法用于判断集合的所有元素是否都包含在指定集合中，如果是则返回 True，否则返回 False。
+            # 对于一维数组或者列表，unique函数去除其中重复的元素，并按元素由大到小返回一个新的无元素重复的元组或者列表
             assert set(np.unique(mask)).issubset([0, 1])
             # assert set(np.unique(weight)).issubset([0, 1])
 
