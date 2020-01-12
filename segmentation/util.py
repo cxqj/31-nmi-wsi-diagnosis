@@ -153,13 +153,13 @@ def Recall(pred, gt, mask):
 
 
 def vis_overlay(imgs, labels, preds, use_mask=True, threshold=None):
-    def compute_alpha_img(img, label, color='r'):
+    def compute_alpha_img(img, label, color='r'):  # img : (256,256,3) label :(256,256)
         if color == 'r':
             tmp = [label[:,:,np.newaxis], np.zeros((h,w,1),np.int64), np.zeros((h,w,1),np.int64)]
-        elif color == 'b':
+        elif color == 'b':  # [(256,256,1),(256,256,1),1-(256,256,1)]
             tmp = [label[:,:,np.newaxis],  np.zeros((h,w,1),np.int64), 1-label[:,:,np.newaxis]]
 
-        return np.concatenate(tmp, 2) * 255.0
+        return np.concatenate(tmp, 2) * 255.0   # (256,256,3)
         # idx = np.concatenate(tmp, 2) #* 255.0
         # alp = im.copy()
         # alp[idx > 0] = 255
