@@ -123,7 +123,7 @@ with sess.as_default():
             # do testing
             vis_cands = []
             for ti in range(test_iter):
-                x_batch, y_batch, weight_batch, _ = next(test_generator)
+                x_batch, y_batch, weight_batch, _ = next(test_generator)  # (2,256,256,3),(2,256,256),(2,256,256)
 
                 feed_dict = {
                                 img: x_batch,
@@ -134,7 +134,7 @@ with sess.as_default():
                 loss, pred_logits, w_sum = sess.run([cross_entropy_loss, logit, summary_merged], feed_dict=feed_dict)
                 if not opt.eval: test_writer.add_summary(w_sum, test_epoch)
                 # pred_map_batch = np.argmax(pred_logits, axis=3)
-                pred_map_batch = pred_logits[:,:,:,1] # positive class logits
+                pred_map_batch = pred_logits[:,:,:,1] # positive class logits  (2,256,256)
                 for pred_map, y, wmask in zip(pred_map_batch, y_batch, weight_batch):
                     score = vis.add_sample(pred_map, y, wmask)
 
