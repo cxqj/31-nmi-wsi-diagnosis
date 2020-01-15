@@ -135,6 +135,7 @@ with sess.as_default():
                 if not opt.eval: test_writer.add_summary(w_sum, test_epoch)
                 # pred_map_batch = np.argmax(pred_logits, axis=3)
                 pred_map_batch = pred_logits[:,:,:,1] # positive class logits  (2,256,256)
+                # pred_map : (256,256) y :(256,256) wmask : (256,256)
                 for pred_map, y, wmask in zip(pred_map_batch, y_batch, weight_batch):
                     score = vis.add_sample(pred_map, y, wmask)
 
