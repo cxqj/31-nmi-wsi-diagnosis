@@ -7,6 +7,7 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+#---------------------------------------------没有用VIS类-----------------------------------#
 class VIS:
     def __init__(self, save_path):
 
@@ -90,7 +91,7 @@ class VISRecall:
         self.cls_iu = []
 
     def add_sample(self, pred, gt, mask):
-        score, is_positive = Recall(pred, gt, mask)
+        score, is_positive = Recall(pred, gt, mask)   # score : list type length : 80
         if is_positive:
             self.mean_recall_pos.append(score)
         else:
@@ -141,7 +142,7 @@ def Recall(pred, gt, mask):
         gt = mask
         pred = 1 - pred
 
-    tot = np.sum(gt == 1)
+    tot = np.sum(gt == 1)  #256x256 = 65536
     recalls = []
     for thre in range(10,90):
         thre /= 100
@@ -149,7 +150,7 @@ def Recall(pred, gt, mask):
         assert(v / tot <= 1)
         recalls.append(v / tot)
 
-    return recalls, cv == 1
+    return recalls, cv == 1  # positive : cv==1  negative : cv==0
 
 
 def vis_overlay(imgs, labels, preds, use_mask=True, threshold=None):
