@@ -148,13 +148,12 @@ with sess.as_default():
                     sys.stdout.flush()
 
             vis.compute_scores(suffix=it)
-            # 只在测试时使用
             tot_save = 0
             if opt.eval:
-                tot_save = len(vis_cands[0])   # vis_cans : [(32,256,256,3)]
+                tot_save = len(vis_cands[0])
             for tt in range(tot_save):
-                save_list = [a[tt] for a in vis_cands]   # (256,256,3)
-                vis_grid = make_grid(save_list, ncols=6) # (256,6x256,3)
+                save_list = [a[tt] for a in vis_cands]
+                vis_grid = make_grid(save_list, ncols=6)
                 vis_grid = misc.imresize(vis_grid, 0.5)
                 misc.imsave(os.path.join(opt.checkpoint_path, 'img/test_results_{}_{}.png'.format(str(test_epoch), str(tt))), vis_grid)
             vis.reset()
@@ -188,3 +187,5 @@ with sess.as_default():
             train_writer.add_summary(w_sum, it)
             sys.stdout.flush()
         epoch_iter += 1
+        
+        
