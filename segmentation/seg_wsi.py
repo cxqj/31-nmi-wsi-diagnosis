@@ -35,6 +35,7 @@ def seg_wsi(args):
     K.set_session(sess)
     # K.set_learning_phase(0)
 
+    # (B,H,W,C)
     img = tf.placeholder(tf.float32, shape=(None, args.imSize, args.imSize, args.input_channel))
     model = UNet().create_model(img_shape=[opt.imSize, opt.imSize, 3], num_class=opt.num_class, rate=0.0, input_tensor=preprocess_input(img))
     unet_pred = tf.nn.softmax(model.output)
