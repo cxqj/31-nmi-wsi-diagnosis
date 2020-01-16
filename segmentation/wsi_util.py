@@ -303,3 +303,5 @@ def vis_overlay(im, pred, threshold=-1):
     # plt.axis('off')
     # fig.tight_layout()
     # plt.show()
+    
+    
