@@ -194,12 +194,14 @@ def vis_overlay(imgs, labels, preds, use_mask=True, threshold=None):
 
     return res
 
-def make_grid(array_list, ncols=3):
-    array = np.array(array_list)
+def make_grid(array_list, ncols=3):  # ncols = 6
+    array = np.array(array_list)   # (1,256,256,3)
     nindex, height, width, intensity = array.shape
-    nrows = nindex//ncols
+    nrows = nindex//ncols   # 0
     assert nindex == nrows*ncols
     # want result.shape = (height*nrows, width*ncols, intensity)
+    
+    # (1,6,256,256,3)-->(1,256,6,256,3)-->(256,6x256,3)
     result = (array.reshape(nrows, ncols, height, width, intensity)
               .swapaxes(1,2)
               .reshape(height*nrows, width*ncols, intensity))
